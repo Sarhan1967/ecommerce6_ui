@@ -1,0 +1,323 @@
+import 'package:e_commerce/constants.dart';
+import 'package:e_commerce/view/checkout/checkout_screen.dart';
+import 'package:e_commerce/view/search_screen.dart';
+import 'package:e_commerce/view/widgets/custom_auth_button.dart';
+import 'package:e_commerce/view/widgets/custom_text.dart';
+import 'package:e_commerce/controllers/cart_controller.dart';
+import 'package:e_commerce/controllers/favorites_controller.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
+
+import 'favorites_screen.dart';
+
+class CartScreen extends StatelessWidget {
+  //final HomeController=Get.find();
+  @override
+  Widget build(BuildContext context) {
+    return GetBuilder<CartController>(
+      init: Get.put(CartController()),
+      builder: (cartController) => Scaffold(
+
+        appBar: AppBar(
+          title: Text('Cart'),
+          backgroundColor: kPrimaryColor,
+          //leading: Icon(Icons.arrow_back_outlined),
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.search),
+              onPressed: () {
+                Get.to(()=>SearchScreen());
+              },
+            ),
+            InkWell(
+              onTap: () {
+                Get.to(() => FavoritesScreen());
+                //Get.to(() => FavouriteView());
+              },
+              child: Stack(
+                children: [
+                  GetBuilder<FavoritesController>(
+                    init: Get.put(FavoritesController()),
+                    builder: (controller) => Align(
+                      child: Text(
+                          controller.allFavoriteProducts.length > 0
+                              ? controller.allFavoriteProducts.length
+                              .toString()
+                              : '0'),
+                      alignment: Alignment.topLeft,
+                    ),
+                  ),
+                  Align(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: Icon(Icons.favorite_border_outlined),
+                      //alignment: Alignment.center,
+                    ),
+                  ),
+                ],
+              ),
+              // child: Padding(
+              //   padding: const EdgeInsets.symmetric(horizontal: 20),
+              //   child: Icon(Icons.favorite_border_outlined),
+              // ),
+            ),
+            InkWell(
+              onTap: () {
+                Get.to(() => CartScreen());
+              },
+              child: Stack(
+                children: [
+                  GetBuilder<CartController>(
+                    init: Get.put(CartController()),
+                    builder: (controller) => Align(
+                      child: Text(controller.cartProductModel.length > 0
+                          ? controller.cartProductModel.length.toString()
+                          : '0'),
+                      alignment: Alignment.topLeft,
+                    ),
+                  ),
+                  Align(
+                    child: Icon(Icons.shopping_cart),
+                    alignment: Alignment.center,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        body: cartController.cartProductModel.isEmpty
+            ? Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SvgPicture.asset(
+                    'assets/images/empty_cart.svg',
+                    height: 170.0,
+                    width: 170.0,
+                  ),
+                  SizedBox(
+                    height: 10.0,
+                  ),
+                  CustomText(
+                    text: 'Cart is Empty \nStart Adding some Products ....  ',
+                    alignment: Alignment.center,
+                    size: 20.0,
+                    linesHeight: 1.2,
+                    linesNum: 2,
+                  ),
+                ],
+              )
+            : Container(
+                padding: EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: ListView.separated(
+                        itemBuilder: (context, index) {
+                          return Slidable(
+                            //key: const ValueKey(0),
+                            startActionPane: ActionPane(
+                              motion: const DrawerMotion(),
+                              extentRatio: 0.25,
+                              children: [
+                                GetBuilder<FavoritesController>(
+                                  init: FavoritesController(),
+                                  builder: (favoritesController) => Container(
+                                    padding: EdgeInsets.only(right: 10.0),
+                                    child: SlidableAction(
+                                      icon: Icons.star,
+                                      //     iconWidget:Icon(
+                                      //       Icons.star,
+                                      //       size: 35.0,
+                                      //       color: Colors.white,
+                                      //     ),
+                                      backgroundColor: Colors.yellow.shade600,
+                                      foregroundColor: Colors.white,
+                                      onPressed: (context) {
+                                        cartController.onActionPressed(
+                                          index,
+                                          SlidableActions.AddToFavorite,
+                                          cartController.cartProductModel[index]
+                                              .productId!,
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            endActionPane: ActionPane(
+                              motion: const DrawerMotion(),
+                              extentRatio: 0.25,
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.only(left: 10.0),
+                                  child: SlidableAction(
+                                      icon: Icons.delete_forever_outlined,
+                                      // icon: Icon(
+                                      //   Icons.delete_forever_outlined,
+                                      //   size: 35.0,
+                                      //   color: Colors.white,
+                                      // ),
+                                      backgroundColor:
+                                          Color.fromRGBO(250, 68, 37, 1.0),
+                                      onPressed: (context) {
+                                        cartController.onActionPressed(
+                                            index,
+                                            SlidableActions.Delete,
+                                            cartController
+                                                .cartProductModel[index]
+                                                .productId!);
+                                      }),
+                                ),
+                              ],
+                            ),
+                            //child: const MyWidget(),
+
+                            child: Container(
+                              height: MediaQuery.of(context).size.height * 0.20,
+                              child: Row(
+                                children: [
+                                  Container(
+                                      width: 130.0,
+                                      child: Image.network(
+                                        cartController
+                                            .cartProductModel[index].image!,
+                                        fit: BoxFit.fill,
+                                      )),
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 25.0),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Container(
+                                          width: 185,
+                                          child: CustomText(
+                                            text: cartController
+                                                .cartProductModel[index].name!,
+                                            size: 21.0,
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          height: 10.0,
+                                        ),
+                                        CustomText(
+                                          text: '\$ ' +
+                                              cartController
+                                                  .cartProductModel[index].price
+                                                  .toString(),
+                                          fontColor: kPrimaryColor,
+                                          size: 16.0,
+                                        ),
+                                        SizedBox(
+                                          height: 15.0,
+                                        ),
+                                        Container(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 10.0,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey.shade200,
+                                          ),
+                                          child: Row(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
+                                            children: [
+                                              GestureDetector(
+                                                onTap: () {
+                                                  cartController
+                                                      .increaseQuantity(index);
+                                                },
+                                                child: Icon(Icons.add),
+                                              ),
+                                              SizedBox(width: 15.0),
+                                              CustomText(
+                                                text: cartController
+                                                    .cartProductModel[index]
+                                                    .quantity
+                                                    .toString(),
+                                                size: 16.0,
+                                              ),
+                                              SizedBox(width: 15.0),
+                                              GestureDetector(
+                                                onTap: () {
+                                                  cartController
+                                                      .decreaseQuantity(index);
+                                                },
+                                                child: Container(
+                                                    padding: EdgeInsets.only(
+                                                      bottom: 15.0,
+                                                    ),
+                                                    child:
+                                                        Icon(Icons.minimize)),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                        separatorBuilder: (context, index) {
+                          return SizedBox(
+                            height: 20.0,
+                          );
+                        },
+                        itemCount: cartController.cartProductModel.length,
+                      ),
+                    ),
+                    GetBuilder<CartController>(
+                      init: Get.find(),
+                      builder: (controller) => Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 20.0, vertical: 10.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CustomText(
+                                  text: 'TOTAL',
+                                  fontColor: Colors.grey,
+                                  size: 15.0,
+                                ),
+                                SizedBox(
+                                  height: 5.0,
+                                ),
+                                CustomText(
+                                  text: '\$' + controller.totalPrice.toString(),
+                                  fontColor: kPrimaryColor,
+                                  size: 22.0,
+                                  weight: FontWeight.bold,
+                                )
+                              ],
+                            ),
+                            Container(
+                              width: 150.0,
+                              child: CustomButton(
+                                btnText: 'CHECKOUT',
+                                onPress: () {
+                                  Get.to(() => (CheckOutScreen()));
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+      ),
+    );
+  }
+}
